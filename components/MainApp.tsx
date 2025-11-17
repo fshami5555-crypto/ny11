@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import Dashboard from './Dashboard';
 import ChatPage from './Chat';
 import Market from './Market';
@@ -8,6 +8,7 @@ import ActiveChats from './ActiveChats';
 import { useAppContext } from '../context/AppContext';
 import { Theme, Language, Notification } from '../types';
 import { TRANSLATIONS } from '../constants';
+import { format } from 'date-fns';
 
 type ActivePage = 'dashboard' | 'chat' | 'activeChats' | 'market' | 'stats' | 'settings';
 
@@ -50,10 +51,11 @@ const ICONS: { [key: string]: string } = {
     'cog-6-tooth': `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995a6.427 6.427 0 0 1 0 .255c0 .382.145.755.438.995l1.003.827c.48.398.668 1.05.26 1.431l-1.296 2.247a1.125 1.125 0 0 1-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.075.124a6.57 6.57 0 0 1-.22.127c-.332.183-.582.495-.645.87l-.213 1.281c-.09.542-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 0 1-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.437-.995a6.428 6.428 0 0 1 0-.255c0-.382-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 0 1-.26-1.431l1.296-2.247a1.125 1.125 0 0 1 1.37.49l1.217.456c.355.133.75.072 1.075-.124.073-.044.146-.087.22-.127.332-.183.582.495.645.87l.213-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" /></svg>`,
 };
 
-const NavIcon: React.FC<{ icon: string; label: string; isActive: boolean; onClick: () => void }> = ({ icon, label, isActive, onClick }) => (
+const NavIcon: React.FC<{ icon: string; label: string; isActive: boolean; onClick: () => void; 'data-tour-id': string; }> = ({ icon, label, isActive, onClick, 'data-tour-id': dataTourId }) => (
     <button
       onClick={onClick}
       aria-label={label}
+      data-tour-id={dataTourId}
       className="flex flex-col items-center justify-center w-full h-full pt-1 transition-colors duration-200 group"
     >
         <div 
@@ -73,16 +75,16 @@ const BottomNav: React.FC<{ activePage: ActivePage; setActivePage: (page: Active
     const isRtl = language === 'ar';
 
     const navItems = [
-        { id: 'dashboard', icon: 'home', label: t.dashboard },
-        { id: 'activeChats', icon: 'users', label: t.activeChats },
-        { id: 'chat', icon: 'chat-bubble-left-right', label: t.experts },
-        { id: 'market', icon: 'shopping-bag', label: t.market },
-        { id: 'stats', icon: 'chart-bar', label: t.stats },
-        { id: 'settings', icon: 'cog-6-tooth', label: t.settings },
+        { id: 'dashboard', icon: 'home', label: t.dashboard, 'data-tour-id': 'nav-dashboard' },
+        { id: 'activeChats', icon: 'chat-bubble-left-right', label: t.activeChats, 'data-tour-id': 'nav-active-chats' },
+        { id: 'chat', icon: 'users', label: t.experts, 'data-tour-id': 'nav-experts' },
+        { id: 'market', icon: 'shopping-bag', label: t.market, 'data-tour-id': 'nav-market' },
+        { id: 'stats', icon: 'chart-bar', label: t.stats, 'data-tour-id': 'nav-stats' },
+        { id: 'settings', icon: 'cog-6-tooth', label: t.settings, 'data-tour-id': 'nav-settings' },
     ] as const;
 
     return (
-        <div className={`fixed bottom-0 left-0 right-0 h-16 bg-gray-100 dark:bg-dark-card border-t border-gray-200 dark:border-gray-700 flex shadow-[0_-4px_12px_-1px_rgba(0,0,0,0.07)] dark:shadow-none ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div data-tour-id="bottom-nav" className={`fixed bottom-0 left-0 right-0 h-16 bg-gray-100 dark:bg-dark-card border-t border-gray-200 dark:border-gray-700 flex shadow-[0_-4px_12px_-1px_rgba(0,0,0,0.07)] dark:shadow-none ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
             {navItems.map(item => (
                 <NavIcon
                     key={item.id}
@@ -90,6 +92,7 @@ const BottomNav: React.FC<{ activePage: ActivePage; setActivePage: (page: Active
                     label={item.label}
                     isActive={activePage === item.id}
                     onClick={() => setActivePage(item.id)}
+                    data-tour-id={item['data-tour-id']}
                 />
             ))}
         </div>
@@ -124,9 +127,188 @@ const NotificationContainer: React.FC = () => {
     );
 };
 
+interface TourStep {
+  selector?: string;
+  title: string;
+  content: string;
+}
+
+interface GuidedTourProps {
+  steps: TourStep[];
+  onComplete: () => void;
+  t: (typeof TRANSLATIONS)['en'];
+}
+
+const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, t }) => {
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+    const tooltipRef = useRef<HTMLDivElement>(null);
+    const step = steps[currentStepIndex];
+
+    const handleNext = () => {
+        if (currentStepIndex < steps.length - 1) {
+            setCurrentStepIndex(currentStepIndex + 1);
+        } else {
+            onComplete();
+        }
+    };
+
+    useLayoutEffect(() => {
+        if (step?.selector) {
+            const element = document.querySelector(step.selector) as HTMLElement;
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                const timer = setTimeout(() => setTargetRect(element.getBoundingClientRect()), 300);
+                return () => clearTimeout(timer);
+            } else {
+                handleNext(); // Skip step if element not found
+            }
+        } else {
+            setTargetRect(null); // For non-element steps like the welcome message
+        }
+    }, [currentStepIndex, step]);
+
+    const isLastStep = currentStepIndex === steps.length - 1;
+    const isWelcomeStep = !step.selector;
+
+    const tooltipStyle: React.CSSProperties = {};
+    if (targetRect && tooltipRef.current) {
+        const tooltipHeight = tooltipRef.current.offsetHeight;
+        const PADDING = 16;
+
+        // Center horizontally in the viewport
+        tooltipStyle.left = '50%';
+        tooltipStyle.transform = 'translateX(-50%)';
+        tooltipStyle.maxWidth = `calc(100vw - ${PADDING * 2}px)`;
+
+        // Position vertically: above if not enough space below, otherwise below
+        if (targetRect.bottom + tooltipHeight + PADDING > window.innerHeight) {
+            tooltipStyle.bottom = `${window.innerHeight - targetRect.top + 8}px`; // 8px margin from element
+        } else {
+            tooltipStyle.top = `${targetRect.bottom + 8}px`; // 8px margin from element
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 z-[1000]">
+            <div 
+                className="absolute inset-0 bg-black transition-opacity duration-300"
+                style={{ opacity: isWelcomeStep ? 0.8 : 0.7 }}
+            ></div>
+
+             {targetRect && (
+                <div 
+                    className="absolute rounded-lg transition-all duration-300 ease-in-out pointer-events-none"
+                    style={{ 
+                        left: targetRect.left - 8, 
+                        top: targetRect.top - 8, 
+                        width: targetRect.width + 16, 
+                        height: targetRect.height + 16,
+                        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.7)',
+                    }}
+                ></div>
+            )}
+            
+            <div 
+                ref={tooltipRef}
+                className={`absolute w-full max-w-sm z-[1001] bg-white dark:bg-dark-card p-4 rounded-lg shadow-2xl animate-fade-in ${isWelcomeStep ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : ''}`}
+                style={isWelcomeStep ? {} : tooltipStyle}
+            >
+                <h3 className="font-bold text-lg text-brand-green mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">{step.content}</p>
+                <div className="flex justify-end gap-3">
+                    {!isWelcomeStep && <button onClick={onComplete} className="text-sm font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">{t.tourSkip}</button>}
+                    <button 
+                        onClick={handleNext} 
+                        className="bg-brand-green text-brand-green-dark px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition"
+                    >
+                        {isLastStep ? t.tourFinish : t.next}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const MainApp: React.FC = () => {
     const [activePage, setActivePage] = useState<ActivePage>('dashboard');
+    const { currentUser, language, plan } = useAppContext();
+    const t = TRANSLATIONS[language];
+    const [isTourActive, setIsTourActive] = useState(false);
+    const [tourSteps, setTourSteps] = useState<TourStep[]>([]);
+
+    useEffect(() => {
+        const tourCompleted = localStorage.getItem('ny11_tour_completed');
+        if (tourCompleted || !currentUser) return;
+
+        const today = format(new Date(), 'yyyy-MM-dd');
+        const hasPlan = !!plan[today];
+        
+        let steps: TourStep[] = [];
+        const commonSteps = [
+             {
+                selector: '[data-tour-id="bottom-nav"]',
+                title: t.tourNavTitle,
+                content: t.tourNavBody
+            },
+            {
+                selector: '[data-tour-id="nav-experts"]',
+                title: t.tourExpertsTitle,
+                content: t.tourExpertsBody
+            },
+            {
+                selector: '[data-tour-id="nav-market"]',
+                title: t.tourMarketTitle,
+                content: t.tourMarketBody
+            },
+            {
+                selector: '[data-tour-id="nav-settings"]',
+                title: t.tourSettingsTitle,
+                content: t.tourSettingsBody
+            },
+        ];
+
+        if (currentUser.id === 'guest') {
+            steps = [
+                {
+                    title: t.tourWelcomeTitle,
+                    content: t.tourWelcomeBodyGuest,
+                },
+                {
+                    selector: '[data-tour-id="login-prompt"]',
+                    title: t.tourLoginPromptTitle,
+                    content: t.tourLoginPromptBody,
+                },
+                ...commonSteps
+            ];
+        } else if (hasPlan) {
+             steps = [
+                {
+                    title: t.tourWelcomeTitle,
+                    content: t.tourWelcomeBody,
+                },
+                {
+                    selector: '#tour-daily-plan',
+                    title: t.tourPlanTitle,
+                    content: t.tourPlanBody,
+                },
+                ...commonSteps
+            ];
+        }
+
+        if (steps.length > 0) {
+            const timer = setTimeout(() => {
+                setTourSteps(steps);
+                setIsTourActive(true);
+            }, 500); 
+            return () => clearTimeout(timer);
+        }
+    }, [currentUser, plan, language]);
+
+    const handleTourComplete = () => {
+        setIsTourActive(false);
+        localStorage.setItem('ny11_tour_completed', 'true');
+    };
 
     const scrollContainerRef = useRef<HTMLElement>(null);
     const isDraggingRef = useRef(false);
@@ -187,12 +369,12 @@ const MainApp: React.FC = () => {
                     }
                 `}
             </style>
+            {isTourActive && tourSteps.length > 0 && <GuidedTour steps={tourSteps} onComplete={handleTourComplete} t={t} />}
             <Header />
             <main
                 ref={scrollContainerRef}
                 onMouseDown={handleMouseDown}
                 onMouseLeave={handleMouseLeaveOrUp}
-                // FIX: Replaced undefined `handleMouseUp` with the existing `handleMouseLeaveOrUp` function to correctly handle the mouse up event for drag-to-scroll functionality.
                 onMouseUp={handleMouseLeaveOrUp}
                 onMouseMove={handleMouseMove}
                 onClickCapture={handleClickCapture}

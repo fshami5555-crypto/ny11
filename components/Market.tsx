@@ -1,7 +1,8 @@
 
+
 import React, { useState } from 'react';
 import { MarketItem } from '../types';
-import { MARKET_ITEMS, TRANSLATIONS } from '../constants';
+import { TRANSLATIONS } from '../constants';
 import { useAppContext } from '../context/AppContext';
 
 const CartModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
@@ -61,10 +62,15 @@ const CartModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
 
 const MarketItemCard: React.FC<{ item: MarketItem }> = ({ item }) => {
-    const { addToCart, showToast, language } = useAppContext();
+    const { addToCart, showToast, language, currentUser, logout } = useAppContext();
     const t = TRANSLATIONS[language];
 
     const handleAddToCart = () => {
+        if (currentUser?.id === 'guest') {
+            showToast(t.loginToContinue, 'error');
+            logout();
+            return;
+        }
         addToCart(item.id);
         showToast(`${item.name} added to cart!`, 'success');
     };
@@ -86,21 +92,30 @@ const MarketItemCard: React.FC<{ item: MarketItem }> = ({ item }) => {
 
 const Market: React.FC = () => {
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const { cart, language } = useAppContext();
+    const { cart, language, currentUser, logout, showToast, marketItems } = useAppContext();
     const t = TRANSLATIONS[language];
+
+    const handleCartIconClick = () => {
+        if (currentUser?.id === 'guest') {
+            showToast(t.loginToContinue, 'error');
+            logout();
+            return;
+        }
+        setIsCartOpen(true);
+    };
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{t.market}</h1>
-                <button onClick={() => setIsCartOpen(true)} className="relative p-2">
+                <button onClick={handleCartIconClick} className="relative p-2">
                     <i className="o-shopping-cart text-2xl text-gray-700 dark:text-gray-300"></i>
                     {cart.length > 0 && <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cart.reduce((total, item) => total + item.quantity, 0)}</span>}
                 </button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {MARKET_ITEMS.map(item => (
+                {marketItems.map(item => (
                     <MarketItemCard key={item.id} item={item} />
                 ))}
             </div>

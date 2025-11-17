@@ -4,6 +4,30 @@ import { format, addDays, subDays } from 'date-fns';
 import { DailyPlan, Meal, Exercise, User, Goal } from '../types';
 import { TRANSLATIONS } from '../constants';
 
+const LoginPrompt: React.FC = () => {
+    const { logout, language } = useAppContext();
+    const t = TRANSLATIONS[language];
+
+    return (
+        <div data-tour-id="login-prompt" className="flex flex-col items-center justify-center h-full pt-10 text-center animate-fade-in">
+            <div className="bg-white dark:bg-dark-card p-8 rounded-xl shadow-xl w-full max-w-sm">
+                <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+                    {t.welcomeGuestTitle}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-8">
+                    {t.welcomeGuestBody}
+                </p>
+                <button
+                    onClick={() => logout()}
+                    className="w-full bg-brand-green text-brand-green-dark py-3 rounded-lg font-semibold hover:opacity-90 transition"
+                >
+                    {t.loginOrRegister}
+                </button>
+            </div>
+        </div>
+    );
+};
+
 const MealDetailModal: React.FC<{ meal: Meal; onClose: () => void }> = ({ meal, onClose }) => {
     const { language } = useAppContext();
     const t = TRANSLATIONS[language];
@@ -113,7 +137,7 @@ const DailyPlanView: React.FC = () => {
     ];
     
     return (
-         <div className="animate-slide-up">
+         <div id="tour-daily-plan" className="animate-slide-up">
             <div className="flex justify-between items-center mb-4">
                 <button onClick={() => setCurrentDate(subDays(currentDate, 1))} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-card"><i className={`o-chevron-left ${isRtl && 'transform rotate-180'}`}></i></button>
                 <h2 className="text-xl font-bold text-gray-800 dark:text-dark-text">{format(currentDate, 'EEEE, MMM d')}</h2>
@@ -243,7 +267,12 @@ const Dashboard: React.FC = () => {
     const { currentUser, updateUserProfile, plan, language } = useAppContext();
     const t = TRANSLATIONS[language];
 
+    const isGuest = currentUser?.id === 'guest';
     const isProfileComplete = !!(currentUser?.age && currentUser?.weight && currentUser?.height && currentUser?.goal);
+
+    if (isGuest) {
+        return <LoginPrompt />;
+    }
 
     if (!isProfileComplete) {
         return <ProfileSetup onComplete={updateUserProfile} />;

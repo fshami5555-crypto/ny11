@@ -35,6 +35,7 @@ export interface User {
   weight?: number; // in kg
   height?: number; // in cm
   goal?: Goal;
+  password?: string;
 }
 
 export interface Coach {
@@ -56,6 +57,7 @@ export interface CoachOnboardingData {
   experienceYears: string;
   clientsHelped: string;
   avatar: string;
+  password?: string;
 }
 
 export enum MessageSender {

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
-import { User, Language, Theme, CartItem, Plan, DailyPlan, QuoteStatus, Message, MessageSender, UserRole, Goal, Coach, CoachOnboardingData, Notification } from '../types';
+import { User, Language, Theme, CartItem, Plan, DailyPlan, QuoteStatus, Message, MessageSender, UserRole, Goal, Coach, CoachOnboardingData, Notification, MarketItem } from '../types';
 import { USERS, COACHES, MARKET_ITEMS, GOAL_PLANS, TRANSLATIONS } from '../constants';
 import { format } from 'date-fns';
 
@@ -19,11 +19,15 @@ interface AppContextType {
     toasts: Toast[];
     plan: Plan;
     notifications: Notification[];
-    login: (email: string) => boolean;
+    isLanguageSelected: boolean;
+    marketItems: MarketItem[];
+    login: (email: string, password?: string) => boolean;
+    loginAsGuest: () => void;
     logout: () => void;
-    register: (user: Omit<User, 'id' | 'role'>) => void;
+    register: (user: Omit<User, 'id' | 'role' | 'avatar'>) => void;
     registerCoach: (data: CoachOnboardingData) => void;
     setLanguage: (lang: Language) => void;
+    setIsLanguageSelected: (isSelected: boolean) => void;
     setTheme: (theme: Theme) => void;
     addToCart: (item: CartItem['id']) => void;
     removeFromCart: (itemId: string) => void;
@@ -35,6 +39,9 @@ interface AppContextType {
     updateUserProfile: (profileData: Partial<Omit<User, 'id' | 'role' | 'email'>>) => void;
     showNotification: (notification: Omit<Notification, 'id'>) => void;
     dismissNotification: (id: number) => void;
+    addMarketItem: (item: Omit<MarketItem, 'id'>) => void;
+    updateMarketItem: (item: MarketItem) => void;
+    deleteMarketItem: (itemId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -44,15 +51,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [users, setUsers] = useState<User[]>(USERS);
     const [coaches, setCoaches] = useState<Coach[]>(COACHES);
     const [language, setLanguage] = useState<Language>(Language.EN);
+    const [isLanguageSelected, setIsLanguageSelected] = useState<boolean>(false);
     const [theme, setTheme] = useState<Theme>(Theme.LIGHT);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [toasts, setToasts] = useState<Toast[]>([]);
     const [plan, setPlan] = useState<Plan>({});
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [marketItems, setMarketItems] = useState<MarketItem[]>(MARKET_ITEMS);
 
-    const login = (email: string) => {
+    const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, type }]);
+        setTimeout(() => {
+            setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));
+        }, 3000);
+    }, []);
+
+    const login = (email: string, password?: string) => {
         const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
         if (user) {
+            // For admin users, password is required
+            if (user.role === UserRole.ADMIN && user.password !== password) {
+                return false;
+            }
+
             setCurrentUser(user);
              // On login, generate plan if profile is complete
             if (user.age && user.weight && user.height && user.goal) {
@@ -67,38 +89,67 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return false;
     };
 
+    const loginAsGuest = () => {
+        const guestUser: User = {
+            id: 'guest',
+            name: TRANSLATIONS[language].guest,
+            email: '',
+            phone: '',
+            role: UserRole.USER,
+        };
+        setCurrentUser(guestUser);
+        setPlan({}); // Ensure guest has no plan
+    };
+
     const logout = () => {
         setCurrentUser(null);
     };
 
-    const register = (userData: Omit<User, 'id' | 'role'>) => {
-        const newUser: User = { ...userData, id: `user${Date.now()}`, role: UserRole.USER };
+    const register = (userData: Omit<User, 'id' | 'role' | 'avatar'>) => {
+        const newUser: User = { 
+            ...userData, 
+            id: `user${Date.now()}`, 
+            role: UserRole.USER,
+        };
         setUsers(prev => [...prev, newUser]);
         setCurrentUser(newUser);
-        setPlan({});
+
+        if (newUser.goal) {
+            const today = format(new Date(), 'yyyy-MM-dd');
+            const userPlan = GOAL_PLANS[newUser.goal] || GOAL_PLANS[Goal.MAINTENANCE];
+            setPlan({ [today]: userPlan });
+        } else {
+            setPlan({});
+        }
     };
 
     const registerCoach = (data: CoachOnboardingData) => {
+        if (!data.password) {
+            showToast('Password is required to create a coach account.', 'error');
+            return;
+        }
         const newId = `coach${Date.now()}`;
         const newUser: User = {
             id: newId,
             name: data.name,
             email: data.email,
             phone: data.phone,
-            role: UserRole.COACH
+            role: UserRole.COACH,
+            password: data.password,
+            avatar: data.avatar,
         };
         const newCoach: Coach = {
             id: newId,
             name: data.name,
             specialty: data.specialty,
             bio: data.bio,
-            experienceYears: parseInt(data.experienceYears, 10),
-            clientsHelped: parseInt(data.clientsHelped, 10),
+            experienceYears: parseInt(data.experienceYears, 10) || 0,
+            clientsHelped: parseInt(data.clientsHelped, 10) || 0,
             avatar: data.avatar,
         };
         setUsers(prev => [...prev, newUser]);
         setCoaches(prev => [...prev, newCoach]);
-        setCurrentUser(newUser);
+        showToast(`Coach ${data.name} has been successfully registered.`, 'success');
     };
 
     const addToCart = (itemId: string) => {
@@ -106,7 +157,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (itemToAdd) {
             setCart(cart.map(item => item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item));
         } else {
-             const newItem = MARKET_ITEMS.find((i) => i.id === itemId);
+             const newItem = marketItems.find((i) => i.id === itemId);
              if(newItem) setCart([...cart, { ...newItem, quantity: 1 }]);
         }
     };
@@ -114,16 +165,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const removeFromCart = (itemId: string) => {
         setCart(cart.filter(item => item.id !== itemId));
     };
+    
+    const addMarketItem = (itemData: Omit<MarketItem, 'id'>) => {
+        const newItem: MarketItem = {
+            ...itemData,
+            id: `${itemData.category.slice(0,1)}${Date.now()}`,
+        };
+        setMarketItems(prev => [...prev, newItem]);
+        showToast(`${itemData.name} has been added to the store.`, 'success');
+    };
+
+    const updateMarketItem = (updatedItem: MarketItem) => {
+        setMarketItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
+        showToast('Item updated successfully.', 'success');
+    };
+
+    const deleteMarketItem = (itemId: string) => {
+        setMarketItems(prev => prev.filter(item => item.id !== itemId));
+        showToast('Item deleted successfully.', 'success');
+    };
 
     const clearCart = () => setCart([]);
-
-    const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
-        const id = Date.now();
-        setToasts(prev => [...prev, { id, message, type }]);
-        setTimeout(() => {
-            setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));
-        }, 3000);
-    }, []);
 
     const showNotification = useCallback((notification: Omit<Notification, 'id'>) => {
         const id = Date.now();
@@ -216,11 +278,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             toasts,
             plan,
             notifications,
+            isLanguageSelected,
+            marketItems,
             login,
+            loginAsGuest,
             logout,
             register,
             registerCoach,
             setLanguage,
+            setIsLanguageSelected,
             setTheme,
             addToCart,
             removeFromCart,
@@ -232,6 +298,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             updateUserProfile,
             showNotification,
             dismissNotification,
+            addMarketItem,
+            updateMarketItem,
+            deleteMarketItem,
         }}>
             {children}
         </AppContext.Provider>

@@ -182,7 +182,7 @@ const CoachCard: React.FC<{ coach: Coach; onClick: () => void }> = ({ coach, onC
 const ChatPage: React.FC = () => {
     const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
     const [isChatting, setIsChatting] = useState(false);
-    const { language, coaches } = useAppContext();
+    const { language, coaches, currentUser, logout, showToast } = useAppContext();
     const t = TRANSLATIONS[language];
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -222,12 +222,21 @@ const ChatPage: React.FC = () => {
         setSelectedCoach(coach);
     };
 
+    const handleStartChat = () => {
+        if (currentUser?.id === 'guest') {
+            showToast(t.loginToContinue, 'error');
+            logout();
+            return;
+        }
+        setIsChatting(true);
+    };
+
     if (isChatting && selectedCoach) {
         return <ChatView coach={selectedCoach} onBack={() => setIsChatting(false)} />;
     }
 
     if (selectedCoach) {
-        return <CoachProfileView coach={selectedCoach} onBack={() => setSelectedCoach(null)} onStartChat={() => setIsChatting(true)} />;
+        return <CoachProfileView coach={selectedCoach} onBack={() => setSelectedCoach(null)} onStartChat={handleStartChat} />;
     }
 
     return (

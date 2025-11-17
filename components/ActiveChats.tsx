@@ -81,9 +81,18 @@ const ChatView: React.FC<{ recipient: User | Coach; onBack: () => void }> = ({ r
 };
 
 const ActiveChats: React.FC = () => {
-    const { currentUser, users, coaches, language } = useAppContext();
+    const { currentUser, users, coaches, language, logout, showToast } = useAppContext();
     const t = TRANSLATIONS[language];
     const [selectedRecipient, setSelectedRecipient] = useState<User | Coach | null>(null);
+
+    const handleRecipientClick = (person: User | Coach) => {
+        if (currentUser?.id === 'guest') {
+            showToast(t.loginToContinue, 'error');
+            logout();
+            return;
+        }
+        setSelectedRecipient(person);
+    };
 
     if (selectedRecipient) {
         return <ChatView recipient={selectedRecipient} onBack={() => setSelectedRecipient(null)} />;
@@ -102,7 +111,7 @@ const ActiveChats: React.FC = () => {
                 {chatList.map(person => (
                     <button 
                         key={person.id} 
-                        onClick={() => setSelectedRecipient(person)}
+                        onClick={() => handleRecipientClick(person)}
                         className="w-full text-left flex items-center p-4 bg-white dark:bg-dark-card rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                     >
                         <img src={person.avatar || `https://i.pravatar.cc/150?u=${person.id}`} alt={person.name} className="w-12 h-12 rounded-full mr-4" />
