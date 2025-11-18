@@ -2,12 +2,11 @@
 
 import React, { useState } from 'react';
 import { MarketItem } from '../types';
-import { TRANSLATIONS } from '../constants';
 import { useAppContext } from '../context/AppContext';
 
 const CartModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    const { cart, removeFromCart, clearCart, showToast, language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { cart, removeFromCart, clearCart, showToast, language, translations } = useAppContext();
+    const t = translations[language];
 
     if (!isOpen) return null;
 
@@ -62,8 +61,8 @@ const CartModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
 
 const MarketItemCard: React.FC<{ item: MarketItem }> = ({ item }) => {
-    const { addToCart, showToast, language, currentUser, logout } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { addToCart, showToast, language, currentUser, logout, translations } = useAppContext();
+    const t = translations[language];
 
     const handleAddToCart = () => {
         if (currentUser?.id === 'guest') {
@@ -92,8 +91,8 @@ const MarketItemCard: React.FC<{ item: MarketItem }> = ({ item }) => {
 
 const Market: React.FC = () => {
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const { cart, language, currentUser, logout, showToast, marketItems } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { cart, language, currentUser, logout, showToast, marketItems, translations } = useAppContext();
+    const t = translations[language];
 
     const handleCartIconClick = () => {
         if (currentUser?.id === 'guest') {

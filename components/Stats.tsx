@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { TRANSLATIONS } from '../constants';
 // Note: In a real environment, Recharts would be installed via npm.
 // This component is written assuming Recharts components are available.
 // For browser-only, a script tag would be needed in index.html, e.g.,
@@ -10,8 +9,8 @@ import { TRANSLATIONS } from '../constants';
 // A real project must include recharts as a dependency.
 
 const MockChart: React.FC<{ data: any[], title: string }> = ({ data, title }) => {
-  const { language } = useAppContext();
-  const t = TRANSLATIONS[language];
+  const { language, translations } = useAppContext();
+  const t = translations[language];
   const percentage = data.length > 0 ? (data.filter(d => d.completed > 50).length / data.length) * 100 : 0;
   return (
     <div className="p-4 border rounded-lg bg-gray-50 dark:bg-dark-card dark:border-gray-700 text-center">
@@ -25,8 +24,8 @@ const MockChart: React.FC<{ data: any[], title: string }> = ({ data, title }) =>
 };
 
 const Stats: React.FC = () => {
-    const { language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, translations } = useAppContext();
+    const t = translations[language];
     // Mock data for demonstration
     const adherenceData = [
         { day: 'Mon', completed: 80 },

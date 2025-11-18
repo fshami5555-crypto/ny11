@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { CoachOnboardingData, MarketItem, UserRole } from '../types';
-import { TRANSLATIONS } from '../constants';
+import { CoachOnboardingData, MarketItem, UserRole, Language } from '../types';
 
-type AdminTab = 'accounts' | 'coaches' | 'store' | 'payments';
+type AdminTab = 'accounts' | 'coaches' | 'store' | 'payments' | 'content';
 
 const Admin: React.FC = () => {
     const { 
@@ -16,10 +15,16 @@ const Admin: React.FC = () => {
         updateMarketItem,
         deleteMarketItem,
         language, 
-        showToast 
+        showToast,
+        bannerImages,
+        addBannerImage,
+        deleteBannerImage,
+        updateBannerImage,
+        translations,
+        updateTranslations
     } = useAppContext();
     
-    const t = TRANSLATIONS[language];
+    const t = translations[language];
     const [activeTab, setActiveTab] = useState<AdminTab>('accounts');
     
     const [showAddCoachForm, setShowAddCoachForm] = useState(false);
@@ -27,6 +32,18 @@ const Admin: React.FC = () => {
     
     const [editingItem, setEditingItem] = useState<MarketItem | null>(null);
     const [newItem, setNewItem] = useState<Omit<MarketItem, 'id'>>({ name: '', description: '', price: 0, image: '', category: 'meal' });
+
+    const [newBannerUrl, setNewBannerUrl] = useState('');
+    const [editingBannerIndex, setEditingBannerIndex] = useState<number | null>(null);
+    const [editingBannerUrl, setEditingBannerUrl] = useState('');
+    const [enTranslations, setEnTranslations] = useState(JSON.stringify(translations.en, null, 2));
+    const [arTranslations, setArTranslations] = useState(JSON.stringify(translations.ar, null, 2));
+
+    useEffect(() => {
+        setEnTranslations(JSON.stringify(translations.en, null, 2));
+        setArTranslations(JSON.stringify(translations.ar, null, 2));
+    }, [translations]);
+
 
     const handleCoachInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setNewCoach({ ...newCoach, [e.target.name]: e.target.value });
@@ -79,6 +96,45 @@ const Admin: React.FC = () => {
     const handleDeleteItem = (itemId: string) => {
         if (window.confirm(t.confirmDelete)) {
             deleteMarketItem(itemId);
+        }
+    };
+    
+    const handleAddBannerImage = () => {
+        if (newBannerUrl.trim() === '') {
+            showToast('Please enter a valid image URL.', 'error');
+            return;
+        }
+        addBannerImage(newBannerUrl);
+        setNewBannerUrl('');
+    };
+
+    const handleEditBannerClick = (index: number, url: string) => {
+        setEditingBannerIndex(index);
+        setEditingBannerUrl(url);
+    };
+
+    const handleCancelBannerEdit = () => {
+        setEditingBannerIndex(null);
+        setEditingBannerUrl('');
+    };
+
+    const handleSaveBannerEdit = () => {
+        if (editingBannerIndex === null) return;
+        if (editingBannerUrl.trim() === '') {
+            showToast('Please enter a valid image URL.', 'error');
+            return;
+        }
+        updateBannerImage(editingBannerIndex, editingBannerUrl);
+        handleCancelBannerEdit();
+    };
+
+    const handleSaveTranslations = () => {
+        try {
+            const parsedEn = JSON.parse(enTranslations);
+            const parsedAr = JSON.parse(arTranslations);
+            updateTranslations({ [Language.EN]: parsedEn, [Language.AR]: parsedAr });
+        } catch (error) {
+            showToast('Invalid JSON format. Please check your text.', 'error');
         }
     };
 
@@ -236,6 +292,69 @@ const Admin: React.FC = () => {
                         <p className="text-gray-600 dark:text-gray-400">{t.paymentsInfo}</p>
                     </div>
                 );
+            case 'content':
+                return (
+                    <div className="animate-fade-in space-y-8">
+                        {/* Banner Management */}
+                        <div className="bg-white dark:bg-dark-card p-6 rounded-xl shadow-lg">
+                             <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">{t.bannerImages}</h3>
+                             <div className="flex gap-2 mb-4">
+                                <input type="text" value={newBannerUrl} onChange={(e) => setNewBannerUrl(e.target.value)} placeholder={t.imageUrl} className="flex-grow p-2 border rounded dark:bg-gray-700 dark:border-gray-600" />
+                                <button onClick={handleAddBannerImage} className="bg-brand-green text-brand-green-dark py-2 px-4 rounded-lg font-semibold hover:opacity-90 transition">{t.add}</button>
+                             </div>
+                             <div className="space-y-2 max-h-60 overflow-y-auto">
+                                {bannerImages.map((url, index) => (
+                                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg gap-4">
+                                        <img src={url} alt={`Banner ${index}`} className="w-20 h-10 object-cover rounded-md flex-shrink-0" />
+                                        
+                                        {editingBannerIndex === index ? (
+                                            <div className="flex-grow flex items-center gap-2">
+                                                <input 
+                                                    type="text" 
+                                                    value={editingBannerUrl} 
+                                                    onChange={(e) => setEditingBannerUrl(e.target.value)} 
+                                                    className="w-full p-1 border rounded dark:bg-gray-800 dark:border-gray-600 text-sm"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <span className="truncate text-sm flex-grow">{url}</span>
+                                        )}
+
+                                        <div className="flex items-center space-x-2 rtl:space-x-reverse flex-shrink-0">
+                                            {editingBannerIndex === index ? (
+                                                <>
+                                                    <button onClick={handleSaveBannerEdit} className="bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-300 px-3 py-1 rounded-md text-sm font-semibold hover:bg-green-200 dark:hover:bg-green-900">{t.save}</button>
+                                                    <button onClick={handleCancelBannerEdit} className="bg-gray-100 text-gray-600 dark:bg-gray-600/50 dark:text-gray-300 px-3 py-1 rounded-md text-sm font-semibold hover:bg-gray-200 dark:hover:bg-gray-600">{t.cancel}</button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button onClick={() => handleEditBannerClick(index, url)} className="bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300 px-3 py-1 rounded-md text-sm font-semibold hover:bg-blue-200 dark:hover:bg-blue-900">{t.edit}</button>
+                                                    <button onClick={() => deleteBannerImage(index)} className="bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-300 px-3 py-1 rounded-md text-sm font-semibold hover:bg-red-200 dark:hover:bg-red-900">{t.delete}</button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                             </div>
+                        </div>
+
+                        {/* Text Content Management */}
+                        <div className="bg-white dark:bg-dark-card p-6 rounded-xl shadow-lg">
+                            <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">{t.textContentManagement}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="font-semibold mb-2 block">{t.englishContent}</label>
+                                    <textarea value={enTranslations} onChange={(e) => setEnTranslations(e.target.value)} rows={15} className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 font-mono text-sm"></textarea>
+                                </div>
+                                <div>
+                                    <label className="font-semibold mb-2 block">{t.arabicContent}</label>
+                                    <textarea value={arTranslations} onChange={(e) => setArTranslations(e.target.value)} rows={15} className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 font-mono text-sm" dir="rtl"></textarea>
+                                </div>
+                            </div>
+                             <button onClick={handleSaveTranslations} className="mt-4 w-full bg-brand-green text-brand-green-dark py-3 rounded-lg font-semibold hover:opacity-90 transition">{t.saveChanges}</button>
+                        </div>
+                    </div>
+                );
         }
     };
 
@@ -262,6 +381,7 @@ const Admin: React.FC = () => {
                 <TabButton tab="coaches" label={t.coachManagement} />
                 <TabButton tab="store" label={t.storeManagement} />
                 <TabButton tab="payments" label={t.paymentManagement} />
+                <TabButton tab="content" label={t.contentManagement} />
             </div>
 
             <div>

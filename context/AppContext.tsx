@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
 import { User, Language, Theme, CartItem, Plan, DailyPlan, QuoteStatus, Message, MessageSender, UserRole, Goal, Coach, CoachOnboardingData, Notification, MarketItem } from '../types';
-import { USERS, COACHES, MARKET_ITEMS, GOAL_PLANS, TRANSLATIONS } from '../constants';
+import { USERS, COACHES, MARKET_ITEMS, GOAL_PLANS, TRANSLATIONS, BANNER_IMAGES } from '../constants';
 import { format } from 'date-fns';
 
 interface Toast {
@@ -21,6 +21,8 @@ interface AppContextType {
     notifications: Notification[];
     isLanguageSelected: boolean;
     marketItems: MarketItem[];
+    bannerImages: string[];
+    translations: typeof TRANSLATIONS;
     login: (email: string, password?: string) => boolean;
     loginAsGuest: () => void;
     logout: () => void;
@@ -42,6 +44,10 @@ interface AppContextType {
     addMarketItem: (item: Omit<MarketItem, 'id'>) => void;
     updateMarketItem: (item: MarketItem) => void;
     deleteMarketItem: (itemId: string) => void;
+    addBannerImage: (url: string) => void;
+    deleteBannerImage: (index: number) => void;
+    updateBannerImage: (index: number, url: string) => void;
+    updateTranslations: (newTranslations: typeof TRANSLATIONS) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -58,6 +64,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [plan, setPlan] = useState<Plan>({});
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [marketItems, setMarketItems] = useState<MarketItem[]>(MARKET_ITEMS);
+    const [bannerImages, setBannerImages] = useState<string[]>(BANNER_IMAGES);
+    const [translations, setTranslations] = useState(TRANSLATIONS);
 
     const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
         const id = Date.now();
@@ -92,7 +100,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const loginAsGuest = () => {
         const guestUser: User = {
             id: 'guest',
-            name: TRANSLATIONS[language].guest,
+            name: translations[language].guest,
             email: '',
             phone: '',
             role: UserRole.USER,
@@ -185,6 +193,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         showToast('Item deleted successfully.', 'success');
     };
 
+    const addBannerImage = (url: string) => {
+        setBannerImages(prev => [...prev, url]);
+        showToast('Banner image added.', 'success');
+    };
+
+    const deleteBannerImage = (index: number) => {
+        setBannerImages(prev => prev.filter((_, i) => i !== index));
+        showToast('Banner image removed.', 'success');
+    };
+
+    const updateBannerImage = (index: number, url: string) => {
+        setBannerImages(prev => prev.map((img, i) => (i === index ? url : img)));
+        showToast('Banner image updated.', 'success');
+    };
+
+    const updateTranslations = (newTranslations: typeof TRANSLATIONS) => {
+        setTranslations(newTranslations);
+        showToast('Text content updated successfully.', 'success');
+    };
+
     const clearCart = () => setCart([]);
 
     const showNotification = useCallback((notification: Omit<Notification, 'id'>) => {
@@ -257,7 +285,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 };
                 setConversation(prev => [...prev, planMessage]);
                 updatePlan(newPlan);
-                const t = TRANSLATIONS[language];
+                const t = translations[language];
                 showNotification({
                     title: t.planUpdatedTitle,
                     body: t.planUpdatedBody,
@@ -280,6 +308,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             notifications,
             isLanguageSelected,
             marketItems,
+            bannerImages,
+            translations,
             login,
             loginAsGuest,
             logout,
@@ -301,6 +331,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             addMarketItem,
             updateMarketItem,
             deleteMarketItem,
+            addBannerImage,
+            deleteBannerImage,
+            updateBannerImage,
+            updateTranslations,
         }}>
             {children}
         </AppContext.Provider>

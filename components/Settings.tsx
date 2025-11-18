@@ -1,11 +1,10 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Language, Theme } from '../types';
-import { TRANSLATIONS } from '../constants';
 
 const Settings: React.FC = () => {
-    const { currentUser, language, setLanguage, theme, setTheme, logout, showNotification } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { currentUser, language, setLanguage, theme, setTheme, logout, showNotification, translations } = useAppContext();
+    const t = translations[language];
 
     const handleTestNotification = () => {
         showNotification({

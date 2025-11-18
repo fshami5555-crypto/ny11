@@ -48,6 +48,12 @@ export const ONBOARDING_BACKGROUNDS = [
     'https://picsum.photos/id/102/1200/800',
 ];
 
+export const BANNER_IMAGES = [
+    'https://i.ibb.co/NdWmCJTb/image.png',
+    'https://i.ibb.co/5xFDgQ2c/image.png',
+    'https://i.ibb.co/hxbVf4f7/image.png',
+];
+
 export const GOAL_PLANS: Record<Goal, DailyPlan> = {
   [Goal.WEIGHT_LOSS]: {
     breakfast: [{ name: 'Oatmeal with Berries', calories: 300, completed: false, image: 'https://picsum.photos/id/1080/400/300', description: 'A warm bowl of oatmeal topped with fresh mixed berries.' }],
@@ -99,7 +105,8 @@ export const TRANSLATIONS = {
     edit: 'Edit',
     delete: 'Delete',
     cancel: 'Cancel',
-    
+    saveChanges: 'Save Changes',
+
     // Onboarding & Auth
     welcome: 'Welcome to ny11',
     chooseLang: 'Choose your language',
@@ -136,6 +143,7 @@ export const TRANSLATIONS = {
     welcomeGuestBody: "To get your personalized plan, please log in or create a new account. We'll guide you through a few quick steps to set up your profile.",
     loginOrRegister: 'Login / Register',
     loginToContinue: 'Please log in to use this feature.',
+    registrationNote: 'All the information you provide will be used by our experts to offer a distinguished and correct service. Please provide accurate data.',
     
     // Nav
     dashboard: 'Dashboard',
@@ -225,6 +233,7 @@ export const TRANSLATIONS = {
     coachManagement: 'Coach Management',
     storeManagement: 'Store Management',
     paymentManagement: 'Payment Management',
+    contentManagement: 'Content Management',
     users: 'Users',
     coaches: 'Coaches',
     existingCoaches: 'Existing Coaches',
@@ -247,6 +256,11 @@ export const TRANSLATIONS = {
     updateItem: 'Update Item',
     paymentsInfo: 'Payment management features are coming soon.',
     confirmDelete: 'Are you sure you want to delete this item?',
+    bannerImages: 'Banner Images',
+    addNewImage: 'Add New Image',
+    textContentManagement: 'Text Content Management',
+    englishContent: 'English Content',
+    arabicContent: 'Arabic Content',
 
     // Guided Tour
     tourWelcomeTitle: 'Welcome to NY11!',
@@ -279,6 +293,7 @@ export const TRANSLATIONS = {
     edit: 'تعديل',
     delete: 'حذف',
     cancel: 'إلغاء',
+    saveChanges: 'حفظ التغييرات',
 
     // Onboarding & Auth
     welcome: 'أهلاً بك في ny11',
@@ -316,6 +331,7 @@ export const TRANSLATIONS = {
     welcomeGuestBody: 'للحصول على خطة مخصصة، يرجى تسجيل الدخول أو إنشاء حساب جديد. سنقوم بإرشادك خلال بضع خطوات سريعة لإعداد ملفك الشخصي.',
     loginOrRegister: 'تسجيل الدخول / تسجيل',
     loginToContinue: 'يرجى تسجيل الدخول لاستخدام هذه الميزة.',
+    registrationNote: 'جميع المعلومات التي تقدمها سيتم استخدامها من قبل خبرائنا لتقديم خدمة مميزة وصحيحة لذلك يرجى وضع بيانات دقيقة لك.',
 
     // Nav
     dashboard: 'الرئيسية',
@@ -405,6 +421,7 @@ export const TRANSLATIONS = {
     coachManagement: 'إدارة المدربين',
     storeManagement: 'إدارة المتجر',
     paymentManagement: 'إدارة المدفوعات',
+    contentManagement: 'إدارة المحتوى',
     users: 'المستخدمون',
     coaches: 'المدربون',
     existingCoaches: 'المدربون الحاليون',
@@ -427,6 +444,11 @@ export const TRANSLATIONS = {
     updateItem: 'تحديث العنصر',
     paymentsInfo: 'ميزات إدارة المدفوعات ستتوفر قريبًا.',
     confirmDelete: 'هل أنت متأكد أنك تريد حذف هذا العنصر؟',
+    bannerImages: 'صور البنر',
+    addNewImage: 'إضافة صورة جديدة',
+    textContentManagement: 'إدارة المحتوى النصي',
+    englishContent: 'المحتوى الإنجليزي',
+    arabicContent: 'المحتوى العربي',
 
     // Guided Tour
     tourWelcomeTitle: 'مرحباً بك في NY11!',
@@ -448,3 +470,5 @@ export const TRANSLATIONS = {
     tourSkip: 'تخطي',
   }
 }
+
+export type TranslationSet = typeof TRANSLATIONS[Language.EN];

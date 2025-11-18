@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { ONBOARDING_BACKGROUNDS, TRANSLATIONS } from '../constants';
+import { ONBOARDING_BACKGROUNDS } from '../constants';
 import { Language, Goal } from '../types';
 
 type OnboardingStep = 'language' | 'login' | 'register';
@@ -14,7 +14,8 @@ const OnboardingAndAuth: React.FC = () => {
         language, 
         loginAsGuest, 
         isLanguageSelected, 
-        setIsLanguageSelected 
+        setIsLanguageSelected,
+        translations
     } = useAppContext();
     const [step, setStep] = useState<OnboardingStep>('language');
     const [regStep, setRegStep] = useState(1);
@@ -26,7 +27,7 @@ const OnboardingAndAuth: React.FC = () => {
         setStep(isLanguageSelected ? 'login' : 'language');
     }, [isLanguageSelected]);
     
-    const t = TRANSLATIONS[language];
+    const t = translations[language];
 
     const handleLanguageSelect = (lang: Language) => {
         setLanguage(lang);
@@ -185,7 +186,10 @@ const OnboardingAndAuth: React.FC = () => {
                         <div className="bg-brand-green h-2 rounded-full transition-all duration-500 ease-in-out" style={{ width: `${progress}%` }}></div>
                     </div>
                 </div>
-                <div className="mt-8 min-h-[220px] flex flex-col justify-center">
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+                    {t.registrationNote}
+                </p>
+                <div className="mt-4 min-h-[220px] flex flex-col justify-center">
                     {renderCurrentStep()}
                 </div>
                 <div className="mt-6 flex gap-4">

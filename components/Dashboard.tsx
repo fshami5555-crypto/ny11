@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { format, addDays, subDays } from 'date-fns';
 import { DailyPlan, Meal, Exercise, User, Goal } from '../types';
-import { TRANSLATIONS } from '../constants';
 
 const LoginPrompt: React.FC = () => {
-    const { logout, language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { logout, language, translations } = useAppContext();
+    const t = translations[language];
 
     return (
         <div data-tour-id="login-prompt" className="flex flex-col items-center justify-center h-full pt-10 text-center animate-fade-in">
@@ -29,8 +28,8 @@ const LoginPrompt: React.FC = () => {
 };
 
 const MealDetailModal: React.FC<{ meal: Meal; onClose: () => void }> = ({ meal, onClose }) => {
-    const { language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, translations } = useAppContext();
+    const t = translations[language];
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 animate-fade-in" onClick={onClose}>
@@ -53,8 +52,8 @@ const MealDetailModal: React.FC<{ meal: Meal; onClose: () => void }> = ({ meal, 
 };
 
 const ProfileCard: React.FC = () => {
-    const { currentUser, language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { currentUser, language, translations } = useAppContext();
+    const t = translations[language];
     return (
         <div className="bg-brand-green-dark text-white p-6 rounded-xl shadow-lg mb-6 animate-fade-in">
             <h2 className="text-2xl font-bold mb-2 text-brand-green">{t.myProfile}</h2>
@@ -109,11 +108,11 @@ const PlanItem: React.FC<{ item: Meal | Exercise; onToggle: () => void, isRtl: b
 
 
 const DailyPlanView: React.FC = () => {
-    const { plan, updateDailyPlan, language } = useAppContext();
+    const { plan, updateDailyPlan, language, translations } = useAppContext();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
     const isRtl = language === 'ar';
-    const t = TRANSLATIONS[language];
+    const t = translations[language];
 
     const dateKey = format(currentDate, 'yyyy-MM-dd');
     const dailyPlan = plan[dateKey] || { breakfast: [], lunch: [], dinner: [], snacks: [], exercises: [] };
@@ -160,8 +159,8 @@ const DailyPlanView: React.FC = () => {
 }
 
 const ProfileSetup: React.FC<{ onComplete: (data: Partial<User>) => void }> = ({ onComplete }) => {
-    const { language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, translations } = useAppContext();
+    const t = translations[language];
     const [step, setStep] = useState(1);
     const [profileData, setProfileData] = useState({
         age: '',
@@ -264,8 +263,8 @@ const ProfileSetup: React.FC<{ onComplete: (data: Partial<User>) => void }> = ({
 };
 
 const Dashboard: React.FC = () => {
-    const { currentUser, updateUserProfile, plan, language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { currentUser, updateUserProfile, plan, language, translations } = useAppContext();
+    const t = translations[language];
 
     const isGuest = currentUser?.id === 'guest';
     const isProfileComplete = !!(currentUser?.age && currentUser?.weight && currentUser?.height && currentUser?.goal);

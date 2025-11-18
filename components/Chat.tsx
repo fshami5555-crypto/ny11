@@ -1,12 +1,12 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Coach, Message, MessageSender, Quote, QuoteStatus } from '../types';
-import { TRANSLATIONS } from '../constants';
 import { useAppContext } from '../context/AppContext';
 
 const QuoteCard: React.FC<{ message: Message; onRespond: (status: QuoteStatus) => void }> = ({ message, onRespond }) => {
     const { quote } = message;
-    const { language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, translations } = useAppContext();
+    const t = translations[language];
     if (!quote) return null;
 
     const isPending = quote.status === QuoteStatus.PENDING;
@@ -32,8 +32,8 @@ const QuoteCard: React.FC<{ message: Message; onRespond: (status: QuoteStatus) =
 
 
 const ChatView: React.FC<{ coach: Coach; onBack: () => void }> = ({ coach, onBack }) => {
-    const { updateQuoteStatus, showToast, language, showNotification } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { updateQuoteStatus, showToast, language, showNotification, translations } = useAppContext();
+    const t = translations[language];
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', sender: MessageSender.COACH, text: `Hello! I'm ${coach.name}. How can I help you achieve your health goals today?`, timestamp: new Date().toISOString() }
     ]);
@@ -129,8 +129,8 @@ const ChatView: React.FC<{ coach: Coach; onBack: () => void }> = ({ coach, onBac
 };
 
 const CoachProfileView: React.FC<{ coach: Coach; onBack: () => void; onStartChat: () => void }> = ({ coach, onBack, onStartChat }) => {
-    const { language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, translations } = useAppContext();
+    const t = translations[language];
 
     return (
         <div className="animate-fade-in">
@@ -164,8 +164,8 @@ const CoachProfileView: React.FC<{ coach: Coach; onBack: () => void; onStartChat
 };
 
 const CoachCard: React.FC<{ coach: Coach; onClick: () => void }> = ({ coach, onClick }) => {
-    const { language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, translations } = useAppContext();
+    const t = translations[language];
 
     return (
         <div onClick={onClick} className="flex-shrink-0 w-64 bg-white dark:bg-dark-card rounded-2xl shadow-lg p-6 flex flex-col items-center text-center transform hover:-translate-y-2 transition-transform duration-300">
@@ -179,11 +179,59 @@ const CoachCard: React.FC<{ coach: Coach; onClick: () => void }> = ({ coach, onC
     )
 };
 
+const BannerSlider: React.FC<{images: string[]}> = ({ images }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        if (images.length === 0) return;
+        const timer = setInterval(() => {
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+        }, 5000);
+
+        return () => clearInterval(timer);
+    }, [images]);
+
+    if (images.length === 0) {
+        return <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden shadow-lg bg-gray-200 dark:bg-dark-card flex items-center justify-center"><p className="text-gray-500">No images available</p></div>;
+    }
+
+    return (
+        <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden shadow-lg" dir="ltr">
+            <div
+                className="flex transition-transform duration-700 ease-in-out h-full"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+            >
+                {images.map((src, index) => (
+                    <img
+                        key={index}
+                        src={src}
+                        alt={`Banner image ${index + 1}`}
+                        className="w-full h-full object-cover flex-shrink-0"
+                    />
+                ))}
+            </div>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
+                {images.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => setCurrentIndex(index)}
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                            currentIndex === index ? 'bg-white scale-110' : 'bg-white/60'
+                        }`}
+                        aria-label={`Go to slide ${index + 1}`}
+                    ></button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
 const ChatPage: React.FC = () => {
     const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
     const [isChatting, setIsChatting] = useState(false);
-    const { language, coaches, currentUser, logout, showToast } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, coaches, currentUser, logout, showToast, bannerImages, translations } = useAppContext();
+    const t = translations[language];
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const isDraggingRef = useRef(false);
@@ -252,6 +300,7 @@ const ChatPage: React.FC = () => {
                     }
                 `}
             </style>
+            <BannerSlider images={bannerImages} />
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{t.connectWithExpert}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2 mb-6">{t.connectWithExpertDesc}</p>
             

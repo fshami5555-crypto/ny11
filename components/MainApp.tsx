@@ -6,8 +6,8 @@ import Stats from './Stats';
 import Settings from './Settings';
 import ActiveChats from './ActiveChats';
 import { useAppContext } from '../context/AppContext';
+import { TranslationSet } from '../constants';
 import { Theme, Language, Notification } from '../types';
-import { TRANSLATIONS } from '../constants';
 import { format } from 'date-fns';
 
 type ActivePage = 'dashboard' | 'chat' | 'activeChats' | 'market' | 'stats' | 'settings';
@@ -48,7 +48,7 @@ const ICONS: { [key: string]: string } = {
     users: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-4.663M12 12.375a3.75 3.75 0 1 0-7.5 0 3.75 3.75 0 0 0 7.5 0Z" /></svg>`,
     'shopping-bag': `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z" /></svg>`,
     'chart-bar': `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" /></svg>`,
-    'cog-6-tooth': `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995a6.427 6.427 0 0 1 0 .255c0 .382.145.755.438.995l1.003.827c.48.398.668 1.05.26 1.431l-1.296 2.247a1.125 1.125 0 0 1-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.075.124a6.57 6.57 0 0 1-.22.127c-.332.183-.582.495-.645.87l-.213 1.281c-.09.542-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 0 1-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.437-.995a6.428 6.428 0 0 1 0-.255c0-.382-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 0 1-.26-1.431l1.296-2.247a1.125 1.125 0 0 1 1.37.49l1.217.456c.355.133.75.072 1.075-.124.073-.044.146-.087.22-.127.332-.183.582.495.645.87l.213-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" /></svg>`,
+    'cog-6-tooth': `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995a6.427 6.427 0 0 1 0 .255c0 .382.145.755.438.995l1.003.827c.48.398.668 1.05.26 1.431l-1.296 2.247a1.125 1.125 0 0 1-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.075.124a6.57 6.57 0 0 1-.22.127c-.332.183-.582.495-.645.87l-.213 1.281c-.09.542-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 0 1-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.437-.995a6.428 6.428 0 0 1 0-.255c0-.382-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 0 1-.26-1.431l1.296-2.247a1.125 1.125 0 0 1 1.37.49l1.217.456c.355.133.75.072 1.075.124.073-.044.146-.087.22-.127.332-.183.582.495.645.87l.213-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" /></svg>`,
 };
 
 const NavIcon: React.FC<{ icon: string; label: string; isActive: boolean; onClick: () => void; 'data-tour-id': string; }> = ({ icon, label, isActive, onClick, 'data-tour-id': dataTourId }) => (
@@ -70,8 +70,8 @@ const NavIcon: React.FC<{ icon: string; label: string; isActive: boolean; onClic
 
 
 const BottomNav: React.FC<{ activePage: ActivePage; setActivePage: (page: ActivePage) => void }> = ({ activePage, setActivePage }) => {
-    const { language } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, translations } = useAppContext();
+    const t = translations[language];
     const isRtl = language === 'ar';
 
     const navItems = [
@@ -136,7 +136,7 @@ interface TourStep {
 interface GuidedTourProps {
   steps: TourStep[];
   onComplete: () => void;
-  t: (typeof TRANSLATIONS)['en'];
+  t: TranslationSet;
 }
 
 const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, t }) => {
@@ -231,9 +231,9 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, t }) => {
 };
 
 const MainApp: React.FC = () => {
-    const [activePage, setActivePage] = useState<ActivePage>('dashboard');
-    const { currentUser, language, plan } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const [activePage, setActivePage] = useState<ActivePage>('chat');
+    const { currentUser, language, plan, translations } = useAppContext();
+    const t = translations[language];
     const [isTourActive, setIsTourActive] = useState(false);
     const [tourSteps, setTourSteps] = useState<TourStep[]>([]);
 
@@ -303,7 +303,7 @@ const MainApp: React.FC = () => {
             }, 500); 
             return () => clearTimeout(timer);
         }
-    }, [currentUser, plan, language]);
+    }, [currentUser, plan, language, t]);
 
     const handleTourComplete = () => {
         setIsTourActive(false);

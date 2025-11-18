@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Coach, Message, MessageSender, UserRole } from '../types';
-import { TRANSLATIONS } from '../constants';
 import { useAppContext } from '../context/AppContext';
 
 // This is a simplified ChatView for the ActiveChats page.
 const ChatView: React.FC<{ recipient: User | Coach; onBack: () => void }> = ({ recipient, onBack }) => {
-    const { language, currentUser } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { language, currentUser, translations } = useAppContext();
+    const t = translations[language];
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', sender: currentUser?.role === UserRole.USER ? MessageSender.COACH : MessageSender.USER, text: `Hello! This is ${recipient.name}. How can I help you today?`, timestamp: new Date().toISOString() }
     ]);
@@ -81,8 +80,8 @@ const ChatView: React.FC<{ recipient: User | Coach; onBack: () => void }> = ({ r
 };
 
 const ActiveChats: React.FC = () => {
-    const { currentUser, users, coaches, language, logout, showToast } = useAppContext();
-    const t = TRANSLATIONS[language];
+    const { currentUser, users, coaches, language, logout, showToast, translations } = useAppContext();
+    const t = translations[language];
     const [selectedRecipient, setSelectedRecipient] = useState<User | Coach | null>(null);
 
     const handleRecipientClick = (person: User | Coach) => {
